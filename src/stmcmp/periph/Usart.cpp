@@ -1,9 +1,16 @@
 #include "Usart.h"
 
+static USART_TypeDef *Terminal;
+
+void setupTerminal(USART_TypeDef *usart)
+{
+    Terminal = usart;
+}
+
 void setupUsart(USART_TypeDef *usart, long long busSpeed, long long boud, GpioBuilder tx)
 {
     RCC->APB1ENR |= RCC_APB1ENR_USART3EN;
-    tx.setType(PinType::PushPull).setSpeed(PinSpeed::VeryHigh).setModer(PinModer::AF).setPull(PinPull::No).setAlternateFunction(7);
+    // tx.setType(PinType::PushPull).setSpeed(PinSpeed::VeryHigh).setModer(PinModer::AF).setPull(PinPull::No).setAlternateFunction(7);
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN; // Включення такту GPIOC
     // Налаштування PC10 (TX) для альтернативної функції USART3
     GPIOC->MODER &= ~(GPIO_MODER_MODER10);       // Очищення бітів MODER10
@@ -23,27 +30,14 @@ void setupUsart(USART_TypeDef *usart, long long busSpeed, long long boud, GpioBu
         ;
 }
 
-void USART3_Transmit(const std::string &message)
-{
-    for (char c : message)
-    {
-        while (!(USART3->SR & USART_SR_TXE))
-            ;
-        USART3->DR = c;
-    }
-
-    while (!(USART3->SR & USART_SR_TC))
-        ;
-}
-
 extern "C" int _write(int file, char *ptr, int len)
 {
     for (int i = 0; i < len; ++i)
     {
-        while ((USART3->SR & USART_SR_TC) == 0)
+        while ((Terminal->SR & USART_SR_TC) == 0)
         {
         }
-        USART3->DR = ptr[i];
+        Terminal->DR = ptr[i];
     }
     return len;
 }

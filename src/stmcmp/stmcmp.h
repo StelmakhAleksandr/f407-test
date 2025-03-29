@@ -6,3 +6,4 @@
 #include "rtosport/Task.h"
 #include "rtosport/RtosFunctions.h"
 #include "periph/Usart.h"
+#include "periph/Adc.h"
